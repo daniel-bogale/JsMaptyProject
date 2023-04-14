@@ -43,6 +43,7 @@ class Workout {
 
 class Running extends Workout {
     type = "running";
+    icon = "🏃‍♂️"
     constructor(coords, distance, duration, cadence) {
         super(coords, distance, duration);
         this.cadence = cadence;
@@ -56,6 +57,7 @@ class Running extends Workout {
     }
 }
 class Cycling extends Workout {
+    icon = "🚴‍♀️";
     type = "cycling";
     constructor(coords, distance, duration, elevationGain) {
         super(coords, distance, duration);
@@ -80,39 +82,25 @@ class App {
 
     constructor() {
         this._getPosition();
+        this._getLocalStorage()
+
         form.addEventListener("submit", this._newWorkout.bind(this));
         inputType.addEventListener("change", this._toggleElevationField);
         containerWorkouts.addEventListener("click", this._moveToPopup.bind(this));
-        // containerWorkouts.addEventListener("click", function(e) {
-        //     if (!e.target.closest(".workout")) return;
-        //     const id = e.target.closest(".workout").dataset.id;
-        //     console.log(id);
-        //     this._goToIdView(id);
-        // });
+
     }
-    _moveToPopup(e) {
-        const workoutEl = e.target.closest(".workout");
-        if (!workoutEl) return;
-        const id = workoutEl.dataset.id;
 
-        const selectedWorkout = this.workout.find((elem) => elem.id == id);
-        this._goToView(selectedWorkout.coords);
-    }
-    _goToView(pos) {
-        const option = {
-            pan: {
-                duration: 1
-            }
-        };
-        this.map.setView(pos, this.zoomLevel, option)
 
-        // async function wait(sec) {
-        //     return new Promise((res) => setTimeout(res, sec));
-        // }
-        // wait(500).then(() => {
-        //     this.map.setView(pos, this.zoomLevel+1, option)
-        // })
+    _getLocalStorage() {
+        const data = JSON.parse(localStorage.getItem("workouts"));
+        if (!data) return;
 
+        this.workout = data;
+        this.workout.forEach((work) => {
+            this._renderWorkout(work);
+            // this._renderWorkoutMarker(work);
+
+        })
     }
     _getPosition() {
         if (navigator.geolocation) {
@@ -137,8 +125,8 @@ class App {
 
         //handling clicks on map
         this.map.on("click", this._showForm.bind(this));
+        this.workout.forEach((work) => { this._renderWorkoutMarker(work) })
     }
-
     _showForm(e) {
         this.mapEvent = e;
 
@@ -179,7 +167,7 @@ class App {
         const { lat, lng } = this.mapEvent.latlng;
         const popLocation = [lat, lng];
         let workout;
-        let popupContent;
+
 
         //check if data is valid and  // if activity running/cycling create running/cycling object
 
@@ -192,7 +180,7 @@ class App {
                 return alert("Inputs have to be positive number");
             workout = new Running(popLocation, distance, duration, cadence);
 
-            this.popupContent = `<span>🏃‍♂️</span> Running on ${workout.date.getFullYear()}`;
+
         }
 
         if (type == "cycling") {
@@ -203,7 +191,7 @@ class App {
                 return alert("Inputs have to be positive number");
             workout = new Cycling(popLocation, distance, duration, elevationGain);
 
-            this.popupContent = `<span>🚴‍♀️</span> Cycling on ${workout.date.getFullYear()}`;
+
         }
 
         this.workout.push(workout);
@@ -212,14 +200,14 @@ class App {
 
         this._renderWorkout(workout);
 
-        this.map.setView(workout.coords, zoomLevel);
+        this._moveToView(workout.coords, this.zoomLevel);
 
         this._hideForm();
+
+        this._setLocalStorage();
     }
     _renderWorkoutMarker(workout) {
-        // set a view on the area where the clicked position is center
 
-        // marker and popup option
         const popOption = {
             maxWidth: 250,
             minWidth: 100,
@@ -231,20 +219,16 @@ class App {
         L.marker(workout.coords)
             .addTo(this.map)
             .bindPopup(L.popup(popOption))
-            .setPopupContent(this.popupContent)
+            .setPopupContent(`${workout.icon} ${workout.description}`)
             .openPopup();
     }
     _renderWorkout(workout) {
         let html;
 
-        html = ` <li class="workout workout--${
-      workout.type == "running" ? "running" : "cycling"
-    }" data-id=${workout.id}>
+        html = ` <li class="workout workout--${workout.type}" data-id=${workout.id}>
         <h2 class="workout__title">${workout.description}</h2>
         <div class="workout__details">
-            <span class="workout__icon">${
-              workout.type == "running" ? "🏃‍♂️" : "🚴‍♀️"
-            } </span>
+            <span class="workout__icon">${workout.icon} </span>
             <span class="workout__value">${workout.distance}</span>
             <span class="workout__unit">km</span>
         </div>
@@ -286,6 +270,33 @@ class App {
         }
 
         form.insertAdjacentHTML("afterend", html);
+    }
+    _moveToPopup(e) {
+        const workoutEl = e.target.closest(".workout");
+        if (!workoutEl) return;
+        const id = workoutEl.dataset.id;
+
+        const selectedWorkout = this.workout.find((elem) => elem.id == id);
+        this._moveToView(selectedWorkout.coords);
+    }
+    _moveToView(pos) {
+        const option = {
+            pan: {
+                duration: 1,
+            },
+        };
+        this.map.setView(pos, this.zoomLevel, option);
+
+        // async function wait(sec) {
+        //     return new Promise((res) => setTimeout(res, sec));
+        // }
+        // wait(500).then(() => {
+        //     this.map.setView(pos, this.zoomLevel+1, option)
+        // })
+    }
+
+    _setLocalStorage() {
+        localStorage.setItem("workouts", JSON.stringify(this.workout));
     }
 }
 
