@@ -35,7 +35,7 @@ class Workout {
             "December",
         ];
 
-        this.description = `${(this.type[0]).toUpperCase()}${this.type.slice(1)} on ${
+        this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
     }
@@ -51,7 +51,7 @@ class Running extends Workout {
     }
 
     calcPace() {
-        this.pace = (this.duration / this.distance);
+        this.pace = this.duration / this.distance;
         return this.pace;
     }
 }
@@ -64,7 +64,7 @@ class Cycling extends Workout {
         this._setDescription();
     }
     calcSpeed() {
-        this.speed = (this.distance / (this.duration / 60));
+        this.speed = this.distance / (this.duration / 60);
         return this.speed;
     }
 }
@@ -76,11 +76,43 @@ class App {
     mapEvent;
     map;
     workout = [];
+    zoomLevel = 13;
 
     constructor() {
         this._getPosition();
         form.addEventListener("submit", this._newWorkout.bind(this));
         inputType.addEventListener("change", this._toggleElevationField);
+        containerWorkouts.addEventListener("click", this._moveToPopup.bind(this));
+        // containerWorkouts.addEventListener("click", function(e) {
+        //     if (!e.target.closest(".workout")) return;
+        //     const id = e.target.closest(".workout").dataset.id;
+        //     console.log(id);
+        //     this._goToIdView(id);
+        // });
+    }
+    _moveToPopup(e) {
+        const workoutEl = e.target.closest(".workout");
+        if (!workoutEl) return;
+        const id = workoutEl.dataset.id;
+
+        const selectedWorkout = this.workout.find((elem) => elem.id == id);
+        this._goToView(selectedWorkout.coords);
+    }
+    _goToView(pos) {
+        const option = {
+            pan: {
+                duration: 1
+            }
+        };
+        this.map.setView(pos, this.zoomLevel, option)
+
+        // async function wait(sec) {
+        //     return new Promise((res) => setTimeout(res, sec));
+        // }
+        // wait(500).then(() => {
+        //     this.map.setView(pos, this.zoomLevel+1, option)
+        // })
+
     }
     _getPosition() {
         if (navigator.geolocation) {
@@ -97,7 +129,7 @@ class App {
         const { latitude, longitude } = position.coords;
         const coords = [latitude, longitude];
 
-        this.map = L.map("map").setView(coords, 13);
+        this.map = L.map("map").setView(coords, this.zoomLevel);
 
         L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -108,7 +140,6 @@ class App {
     }
 
     _showForm(e) {
-
         this.mapEvent = e;
 
         form.classList.remove("hidden");
@@ -121,25 +152,23 @@ class App {
             inputDuration.value =
             "";
         form.style.display = "none";
-        setTimeout(() => { form.style.display = "grid"; }, 1000)
+        setTimeout(() => {
+            form.style.display = "grid";
+        }, 1000);
 
         form.classList.add("hidden");
     }
-
 
     _toggleElevationField() {
         inputElevation.closest(".form__row").classList.toggle("form__row--hidden");
         inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
     }
 
-
     _newWorkout(e) {
         const validInputs = (...inputs) =>
             inputs.every((inp) => Number.isFinite(inp));
 
         const allPositive = (...inputs) => inputs.every((inp) => inp > 0);
-
-
 
         e.preventDefault();
 
@@ -179,18 +208,16 @@ class App {
 
         this.workout.push(workout);
 
-        this.renderWorkoutMarker(workout);
+        this._renderWorkoutMarker(workout);
 
         this._renderWorkout(workout);
 
+        this.map.setView(workout.coords, zoomLevel);
+
         this._hideForm();
-
-
     }
-    renderWorkoutMarker(workout) {
+    _renderWorkoutMarker(workout) {
         // set a view on the area where the clicked position is center
-
-        this.map.setView(workout.coords, 13);
 
         // marker and popup option
         const popOption = {
@@ -210,7 +237,9 @@ class App {
     _renderWorkout(workout) {
         let html;
 
-        html = ` <li class="workout workout--${workout.type == "running"?"running":"cycling"}" data-id=${workout.id}>
+        html = ` <li class="workout workout--${
+      workout.type == "running" ? "running" : "cycling"
+    }" data-id=${workout.id}>
         <h2 class="workout__title">${workout.description}</h2>
         <div class="workout__details">
             <span class="workout__icon">${
