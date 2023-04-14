@@ -47,13 +47,13 @@ class Cycling extends Workout {
 
 const workout = new Workout(2, 2, 3);
 
-const run1 = new Running([39, -12], 5.2, 24, 178)
+const run1 = new Running([39, -12], 5.2, 24, 178);
 
-console.log(run1.pace)
+console.log(run1.pace);
 
-const cycl1 = new Cycling([39, -12], 5.2, 4, 178)
+const cycl1 = new Cycling([39, -12], 5.2, 4, 178);
 
-console.log(cycl1.speed)
+console.log(cycl1.speed);
 
 /////////////////////////////////////
 ////////////////////////////////////
@@ -104,15 +104,52 @@ class App {
         inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
     }
     _newWorkout(e) {
-        e.preventDefault();
-        // console.log(this);
+        const validInputs = (...inputs) =>
+            inputs.every((inp) => Number.isFinite(inp));
 
-        //clear input fields
-        inputDistance.value = inputCadence.value = inputDuration.value = "";
+        const allPositive = (...inputs) => inputs.every(inp => inp > 0);
+
+        e.preventDefault();
+
+        //get data from input
+        const type = inputType.value;
+        const distance = +inputDistance.value;
+
+        const duration = +inputDuration.value;
+
+
+
+        //check if data is valid
+
+        // if activity running/cycling create running/cycling object
+
+        if (type == "running") {
+            const cadence = +inputCadence.value;
+            // console.log(Number.isFinite(cadence), Number.isFinite(distance), Number.isFinite(duration))
+
+            if (!validInputs(distance, duration, cadence) || !allPositive(distance, duration, cadence))
+                return alert("Inputs have to be positive number");
+        }
+        if (type == "cycling") {
+            const elevationGain = +inputElevation.value;
+            if (!validInputs(distance, duration, elevationGain) || !allPositive(distance, duration))
+                return alert("Inputs have to be positive number");
+        }
+
+        //add new object to workout array
+
+        //render workout on map as marker
 
         // get the clicked location
-        console.log(this.mapEvent);
-        const popLocation = this.mapEvent.latlng;
+        const { lat, lng } = this.mapEvent.latlng;
+        const popLocation = [lat, lng];
+
+        //clear input fields
+        inputDistance.value =
+            inputElevation.value =
+            inputCadence.value =
+            inputDuration.value =
+            "";
 
         // set a view on the area where the clicked position is center
         this.map.setView(popLocation, 13);
