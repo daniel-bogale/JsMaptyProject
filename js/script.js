@@ -302,3 +302,8 @@ class App {
 
 const app = new App();
 app._getPosition();
+
+// "repository": {
+//   "type": "git",
+//   "url": "git+https://github.com/danibog/JsMaptyProject.git"
+// },
