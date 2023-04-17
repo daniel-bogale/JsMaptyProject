@@ -43,7 +43,7 @@ class Workout {
 
 class Running extends Workout {
     type = "running";
-    icon = "🏃‍♂️"
+    icon = "🏃‍♂️";
     constructor(coords, distance, duration, cadence) {
         super(coords, distance, duration);
         this.cadence = cadence;
@@ -82,14 +82,12 @@ class App {
 
     constructor() {
         this._getPosition();
-        this._getLocalStorage()
+        this._getLocalStorage();
 
         form.addEventListener("submit", this._newWorkout.bind(this));
         inputType.addEventListener("change", this._toggleElevationField);
         containerWorkouts.addEventListener("click", this._moveToPopup.bind(this));
-
     }
-
 
     _getLocalStorage() {
         const data = JSON.parse(localStorage.getItem("workouts"));
@@ -99,18 +97,22 @@ class App {
         this.workout.forEach((work) => {
             this._renderWorkout(work);
             // this._renderWorkoutMarker(work);
-
-        })
+        });
     }
     _getPosition() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 this._loadMap.bind(this),
-                function() {
-                    alert("Could not get your postion");
-                }
+                this._checkLocationOn.bind(this)
             );
         }
+    }
+    _checkLocationOn() {
+        alert("Could not get your postion");
+
+        setTimeout(() => {
+            this._getPosition();
+        }, 2000);
     }
     _loadMap(position) {
         // console.log("loaded");
@@ -125,7 +127,9 @@ class App {
 
         //handling clicks on map
         this.map.on("click", this._showForm.bind(this));
-        this.workout.forEach((work) => { this._renderWorkoutMarker(work) })
+        this.workout.forEach((work) => {
+            this._renderWorkoutMarker(work);
+        });
     }
     _showForm(e) {
         this.mapEvent = e;
@@ -168,7 +172,6 @@ class App {
         const popLocation = [lat, lng];
         let workout;
 
-
         //check if data is valid and  // if activity running/cycling create running/cycling object
 
         if (type == "running") {
@@ -179,8 +182,6 @@ class App {
             )
                 return alert("Inputs have to be positive number");
             workout = new Running(popLocation, distance, duration, cadence);
-
-
         }
 
         if (type == "cycling") {
@@ -190,8 +191,6 @@ class App {
             )
                 return alert("Inputs have to be positive number");
             workout = new Cycling(popLocation, distance, duration, elevationGain);
-
-
         }
 
         this.workout.push(workout);
@@ -207,7 +206,6 @@ class App {
         this._setLocalStorage();
     }
     _renderWorkoutMarker(workout) {
-
         const popOption = {
             maxWidth: 250,
             minWidth: 100,
@@ -302,8 +300,3 @@ class App {
 
 const app = new App();
 app._getPosition();
-
-// "repository": {
-//   "type": "git",
-//   "url": "git+https://github.com/danibog/JsMaptyProject.git"
-// },
