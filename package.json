@@ -1,0 +1,20 @@
+{
+    "name": "mapty",
+    "version": "1.0.0",
+    "description": "workout trucking application",
+    "default": "index.html",
+    "scripts": {
+        "start": "parcel index.html",
+        "build": "parcel build index.html --dist-dir ./dist"
+    },
+    "author": "daniel bogale",
+    "license": "ISC",
+    "devDependencies": {
+        "parcel": "8.15.0"
+    },
+
+    "bugs": {
+        "url": "https://github.com/danibog/JsMaptyProject/issues"
+    },
+    "homepage": "https://github.com/danibog/JsMaptyProject#readme"
+}
